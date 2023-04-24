@@ -1,0 +1,15 @@
+{
+  "name": "jsvim",
+  "version": "1.0.0",
+  "description": "A Vim clone written in Javascript",
+  "main": "./src/main.js",
+  "bin": "./src/jsvim.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Henrique Leal",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}

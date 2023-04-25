@@ -9,50 +9,43 @@ readline.emitKeypressEvents(process.stdin)
 
 process.stdin.setRawMode(true)
 process.stdin.on("keypress", (str, key) => {
-    // console.log(key)
     switch(key.sequence) {
         case "\x1B[A": // UP
-            editor.moveCursorUp()
+            process.stdout.write(editor.moveCursorUp())
             break
         case "\x1B[B": // DOWN
-            editor.moveCursorDown()
+            process.stdout.write(editor.moveCursorDown())
             break
         case "\x1B[C": // RIGHT
-            editor.moveCursorRight()
+            process.stdout.write(editor.moveCursorRight())
             break
         case "\x1B[D": // LEFT
-            editor.moveCursorLeft()
+            process.stdout.write(editor.moveCursorLeft())
             break
         case "\x7F": // BACKSPACE
             if(editor.cursor.x > 0) {
                 process.stdout.write("\x1B[1000D") // Move all the way left
                 process.stdout.write("\x1B[0K")    // Clear line
-                editor.currentRow = editor.currentRow.slice(0, -1)
+
                 editor.cursor.x -= 1
-                process.stdout.write(editor.currentRow)
+                editor.currentRow = -1
+
+                process.stdout.write(editor.currentRow.text)
                 process.stdout.write("\x1B[1000D") // Move all the way left again
-                process.stdout.write(`\x1B[${editor.currentRow.length}C`) // Move cursor too index
-            } else if (editor.cursor.x <= 0) {
-                let previousLineIndex = editor.cursor.y - 1
-
-                editor.cursor.x = editor.rows[previousLineIndex].text.length
-                editor.cursor.y = previousLineIndex
-
-                editor.moveCursor(editor.cursor.x, editor.cursor.y)
-                editor.currentRow = editor.rows[previousLineIndex].text
-                // editor.rows.pop() // Remove last array element
-                process.stdout.write(editor.refreshScreen())
+                process.stdout.write(`\x1B[${editor.cursor.x}C`) // Move cursor too index
             }
             break
         case "\r": // ENTER
-            editor.setCurrentRow()
-            editor.cursor.y += 1
             editor.cursor.x = 0
+            editor.cursor.y += 1
+            editor.rows.push({text: ""})
+
             process.stdout.write(editor.refreshScreen())
             break
         default:
-            editor.currentRow += str
             editor.cursor.x += 1
+            editor.currentRow = str
+            break
     }
 
     if (typeof str !== 'undefined')
@@ -60,7 +53,7 @@ process.stdin.on("keypress", (str, key) => {
         process.stdout.write(str)
     }
 
-    editor.toolbar(key)
+    editor.toolbar()
 
     if(key.name == "m") {
         throw("Saindo")

@@ -3,8 +3,23 @@ class Editor {
         this.screenRows = screenRows
         this.screenCols = screenCols
         this.cursor = {x: 0, y: 0}
-        this.rows = [] // {text: "text"}
-        this.currentRow = ""
+        this.rows = [{text: ""}]
+    }
+
+    get currentRowIndex() {
+        return this.cursor.y
+    }
+
+    set currentRow(value) {
+        if(value === -1) {
+            this.rows[this.cursor.y].text  = this.rows[this.cursor.y].text.slice(0, -1)
+        } else {
+            this.rows[this.cursor.y].text += value
+        }
+    }
+
+    get currentRow() {
+        return this.rows[this.cursor.y]
     }
 
     refreshScreen() {
@@ -52,23 +67,14 @@ class Editor {
         // enable cursor back
         buffer.push("\x1b[?25h")
 
-        // TODO: remove this process
         return buffer.join("")
     }
 
-    setCurrentRow() {
-        if(this.rows[this.cursor.y] !== undefined) {
-            this.rows[this.cursor.y] = {text: this.currentRow}
-        } else {
-            this.rows.push({text: this.currentRow})
-        }
-        this.currentRow = ""
-    }
-
-    toolbar(key) {
+    toolbar() {
         process.stdout.write(`\x1b[${this.screenCols};0H`) // Move cursor to last line
-        process.stdout.write(`y: ${this.cursor.y}, x: ${this.cursor.x} // X: ${this.screenRows}, Y: ${this.screenCols}, CurrentRowLength: ${this.currentRow.length}`)
-        process.stdout.write(`\x1b[${this.cursor.y + 1};${this.cursor.x + 1}H`) // Move cursor to last line
+        // process.stdout.write(`y: ${this.cursor.y}, x: ${this.cursor.x} // screenRows: ${this.screenRows}, screenCols: ${this.screenCols}`)
+        process.stdout.write(`y: ${this.cursor.y}, x: ${this.cursor.x} // screenRows: ${this.screenRows}, screenCols: ${this.screenCols} // currentRow: ${this.currentRow.text}`)
+        process.stdout.write(`\x1b[${this.cursor.y + 1};${this.cursor.x + 1}H`) // Move cursor back
 
     }
 
@@ -80,31 +86,38 @@ class Editor {
         buffer.push(`\x1b[${this.cursor.y};${this.cursor.x}H`)
         buffer.push("\x1b[?25h") // Enable cursor back
 
-        process.stdout.write(buffer.join(""))
+        return buffer.join("")
     }
 
     moveCursorUp() {
         if(this.cursor.y != 0) {
-            this.moveCursor(this.cursor.x, this.cursor.y - 1)
+            let cursorX = this.rows[this.cursor.y - 1].text.length
+            return this.moveCursor(cursorX, this.cursor.y - 1)
         }
+        return ""
     }
 
     moveCursorDown() {
-        if(this.cursor.y < this.rows.length) {
-            this.moveCursor(this.cursor.x, this.cursor.y + 1)
+        if(this.cursor.y < this.rows.length - 1) {
+            let cursorX = this.rows[this.cursor.y + 1].text.length
+
+            return this.moveCursor(cursorX, this.cursor.y + 1)
         }
+        return ""
     }
 
     moveCursorRight() {
-        if(this.cursor.x <= this.currentRow.length) {
-            this.moveCursor(this.cursor.x + 1, this.cursor.y)
+        if(this.cursor.x <= this.currentRow.text.length - 1) {
+            return this.moveCursor(this.cursor.x + 1, this.cursor.y)
         }
+        return ""
     }
 
     moveCursorLeft() {
         if(this.cursor.x > 0) {
-            this.moveCursor(this.cursor.x - 1, this.cursor.y)
+            return this.moveCursor(this.cursor.x - 1, this.cursor.y)
         }
+        return ""
     }
 }
 

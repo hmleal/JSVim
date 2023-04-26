@@ -1,8 +1,21 @@
 #!/usr/bin/env node
+const fs = require('fs')
 const readline = require("readline")
+const os = require("os")
+
 const Editor = require("./main")
 
-let editor = new Editor(process.stdout.rows, process.stdout.columns)
+let filePath = process.argv[2] // Filename
+let fileContent = []
+if(fs.existsSync(filePath)) {
+    fileContent = fs.readFileSync(filePath, "utf8").trim().split(os.EOL);
+}
+
+let editor = new Editor(
+    process.stdout.rows,
+    process.stdout.columns,
+    fileContent
+)
 process.stdout.write(editor.refreshScreen())
 
 readline.emitKeypressEvents(process.stdin)
@@ -35,6 +48,11 @@ process.stdin.on("keypress", (str, key) => {
                 process.stdout.write(`\x1B[${editor.cursor.x}C`) // Move cursor too index
             }
             break
+        case "x": // Exit
+            process.stdin.setRawMode(false);
+            process.stdin.resume();
+
+            process.exit(0)
         case "\r": // ENTER
             editor.cursor.x = 0
             editor.cursor.y += 1
@@ -54,8 +72,4 @@ process.stdin.on("keypress", (str, key) => {
     }
 
     editor.toolbar()
-
-    if(key.name == "m") {
-        throw("Saindo")
-    }
 })

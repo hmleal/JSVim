@@ -1,13 +1,15 @@
 class Editor {
-    constructor(screenRows, screenCols) {
+    constructor(screenRows, screenCols, data=[]) {
         this.screenRows = screenRows
         this.screenCols = screenCols
         this.cursor = {x: 0, y: 0}
         this.rows = [{text: ""}]
-    }
 
-    get currentRowIndex() {
-        return this.cursor.y
+        if(data.length) {
+            this.rows.pop()
+            data.map(row => this.rows.push({text: row}))
+        }
+
     }
 
     set currentRow(value) {
